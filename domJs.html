@@ -156,10 +156,10 @@
                         二二二二二
                     </div>
                     <div>
-                        三三三三三三三三
+                        三三三三 
                     </div>
                     <div>
-                     四四四四
+                        四四四四
                     </div>
                     <span class="prev1" id="prev1" style="position: absolute;left: 0;">左边</span>
                     <span class="next1" id="next1" style="position: absolute;right: 0;">右边</span>
@@ -288,7 +288,7 @@
         };
         _$(function () {
             var xfky = {
-                tabCard: function (titTarget, contTarget, eveType, prev_el, next_el,txtColor,prevNextCont) {
+                tabCard: function (titTarget, contTarget, eveType, prev_el, next_el, txtColor, prevNextCont) {
                     for (var i = 0; i < titTarget.length; i++) {
                         titTarget[i].index = i;
                         eventUntil.addEvent(titTarget[i], eveType, tabInit);
@@ -396,8 +396,7 @@
                 next1,
                 '#ccc',
                 document.getElementById('hua').getElementsByTagName('div'));//tab切换
-            xfky.elSlider('wrap', 'prev', 'next', 'img');//调用  只需要传这四个元素即可
+            xfky.elSlider('wrap', 'prev', 'next', 'img');//调用  只需要传这四个元素(父元素，左按钮，右按钮，切换内容)即可
             xfky.toogleWidth(toogleWidth.getElementsByTagName('div'), 'mouseenter', 100);// 滑动门
         });
     </script>
-
