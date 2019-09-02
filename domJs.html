@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>敲装自己的原生常用插件，包含选项卡切换，图片切换，模态框，返回顶部，滑动门，手风琴菜单，持续敲装...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            margin: 100px auto 0 auto;
+            box-shadow: 0 0 5px green;
+            overflow: hidden;
+        }
+
+        .container .wrap {
+            position: absolute;
+            width: 4200px;
+            height: 400px;
+            z-index: 1;
+            transition: all 1s;
+        }
+
+        .container .wrap img {
+            float: left;
+            width: 600px;
+            height: 400px;
+        }
+
+        .container .buttons {
+            position: absolute;
+            right: 5px;
+            bottom: 40px;
+            width: 150px;
+            height: 10px;
+            z-index: 2;
+        }
+
+        .container .buttons span {
+            margin-left: 5px;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: green;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+        }
+
+        .container .buttons span.on {
+            background-color: red;
+        }
+
+        .container .arrow {
+            position: absolute;
+            top: 35%;
+            color: green;
+            padding: 0px 14px;
+            border-radius: 50%;
+            font-size: 50px;
+            z-index: 2;
+            display: none;
+        }
+
+        .container .arrow_left {
+            left: 10px;
+        }
+
+        .container .arrow_right {
+            right: 10px;
+        }
+
+        .container:hover .arrow {
+            display: block;
+        }
+
+        .container .arrow:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .active {
+            color: red;
+        }
+
+        .cont>div {
+            display: none;
+        }
+
+        .cont .show {
+            display: block;
+        }
+
+        #toogleWidth div {
+            width: 100px;
+            overflow: hidden;
+            transition: all .4s;
+            float: left;
+        }
+
+        #tit>div {
+            float: left;
+            width: 100px;
+            background: skyblue;
+
+        }
+
+        #cont>div {
+            border: 1px red solid;
+            text-align: center;
+            width: 300px;
+        }
+
+        .hua {
+            position: relative;
+            height: 400px;
+            width: 200px;
+        }
+
+        .hua>div {
+            display: none;
+        }
+
+        .hua>div.active {
+            display: block;
+        }
+    </style>
+
+
+</head>
+
+<body>
+    <div class="">
+        <div class="tit" id="tit">
+            <div class="active">1</div>
+            <div>2</div>
+            <div>3</div>
+        </div>
+        <div class="cont" id="cont">
+            <div class="show">
+                <div class="hua" id="hua">
+                    <div class="active">
+                        一一一一一
+                    </div>
+                    <div>
+                        二二二二二
+                    </div>
+                    <div>
+                        三三三三三三三三
+                    </div>
+                    <div>
+                     四四四四
+                    </div>
+                    <span class="prev1" id="prev1" style="position: absolute;left: 0;">左边</span>
+                    <span class="next1" id="next1" style="position: absolute;right: 0;">右边</span>
+                </div>
+            </div>
+            <div>22</div>
+            <div>33</div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="wrap" style="left: -600px;" id="wrap">
+            <img src="http://m.beijing.xuefu.com/beijing/img/mcd-index-002xa.png" alt="">
+            <img src="http://beijing.xuefu.com/g-img/index-banner/index-mwh-bn4.png" alt="">
+            <img src="http://m.exuefu.com/m/g-img/ez-ban.png" alt="">
+        </div>
+
+        <a class="arrow arrow_left" id="prev">&lt;</a>
+        <a class="arrow arrow_right" id="next">&gt;</a>
+    </div>
+
+
+    <div id="toogleWidth">
+        <div><img src="  http://beijing.xuefu.com/g-img/img-sztd/bjzq04.png" alt=""></div>
+        <div><img src="  http://beijing.xuefu.com/g-img/img-sztd/bjzq04.png" alt=""></div>
+        <div><img src="  http://beijing.xuefu.com/g-img/img-sztd/bjzq04.png" alt=""></div>
+    </div>
+
+
+
+    <script>
+        function _$(fun) {
+            if (typeof fun != "function") {
+                throw new typeError('The argument passed in is not a function');
+            } else {
+                var doc = document;
+                if (doc.addEventListener) {
+                    doc.addEventListener("DOMContentLoaded", fun, false);
+                } else {
+                    doc.onreadystatechange = function () {
+                        if (doc.readyState == 'loader' || doc.readyState == 'complete' || doc.readyState == 'interactive') {
+                            fun();
+                        }
+                    };
+                }
+            }
+        }
+        // event(事件)工具集
+        eventUntil = {
+            // 页面加载完成后
+            // 主要是原生JS，页面只能加载一次window.onload；这里使用该方法可以绑定多个方法。
+            readyEvent: function (fn) {
+                if (fn == null) {
+                    fn = document;
+                }
+                var oldonload = window.onload;
+                if (typeof window.onload != 'function') {
+                    window.onload = fn;
+                } else {
+                    window.onload = function () {
+                        oldonload();
+                        fn();
+                    };
+                }
+            },
+            // 视能力分别使用dom0||dom2||IE方式 来绑定事件
+            // 下面的顺序：标准dom2，IE dom2， dom
+            // 参数： 操作的元素,事件名称 ,事件处理程序
+            addEvent: function (element, type, handler) {
+                if (element.addEventListener) {
+                    //事件类型、需要执行的函数、是否捕捉
+                    element.addEventListener(type, handler, true);
+                } else if (element.attachEvent) {
+                    element.attachEvent('on' + type, function () {
+                        handler.call(element);
+                    });
+                } else {
+                    element['on' + type] = handler;
+                }
+            },
+            // 移除事件
+            removeEvent: function (element, type, handler) {
+                if (element.removeEnentListener) {
+                    element.removeEnentListener(type, handler, false);
+                } else if (element.datachEvent) {
+                    element.detachEvent('on' + type, handler);
+                } else {
+                    element['on' + type] = null;
+                }
+            },
+            // 阻止事件 (主要是事件冒泡，因为IE不支持事件捕获)
+            stopPropagation: function (ev) {
+                if (ev.stopPropagation) {
+                    ev.stopPropagation();// 标准w3c
+                } else {
+                    ev.cancelBubble = true;// IE
+                }
+            },
+            // 取消事件的默认行为
+            preventDefault: function (event) {
+                if (event.preventDefault) {
+                    event.preventDefault();// 标准w3c
+                } else {
+                    event.returnValue = false;// IE
+                }
+            },
+            // 获取事件目标
+            getTarget: function (event) {
+                // 标准W3C 和 IE
+                return event.target || event.srcElement;
+            },
+            // 获取event对象的引用，取到事件的所有信息，确保随时能使用event；
+            getEvent: function (e) {
+                var ev = e || window.event;
+                if (!ev) {
+                    var c = this.getEvent.caller;
+                    while (c) {
+                        ev = c.arguments[0];
+                        if (ev && Event == ev.constructor) {
+                            break;
+                        }
+                        c = c.caller;
+                    }
+                }
+                return ev;
+            }
+        };
+        _$(function () {
+            var xfky = {
+                tabCard: function (titTarget, contTarget, eveType, prev_el, next_el,txtColor,prevNextCont) {
+                    for (var i = 0; i < titTarget.length; i++) {
+                        titTarget[i].index = i;
+                        eventUntil.addEvent(titTarget[i], eveType, tabInit);
+                        function tabInit() {
+                            for (var i = 0; i < titTarget.length; i++) {
+                                titTarget[i].className = '';
+                                contTarget[i].className = '';
+                            }
+                            this.className = 'active';
+                            contTarget[this.index].className = 'show';
+                        }
+                    }
+                    prev_el.style.color = txtColor; //默认左边不可点击
+                    eventUntil.addEvent(next_el, 'click', next_el_fun);
+                    eventUntil.addEvent(prev_el, 'click', prev_el_fun);
+                    function next_el_fun() {
+                        for (var i = 0; i < prevNextCont.length; i++) {
+                            if (prevNextCont[i].className === "active") {
+                                prev_el.style = "";
+                                prevNextCont[i].className = "";
+                                prevNextCont[i + 1].className = "active";
+                                break;
+                            }
+                            if (prevNextCont[prevNextCont.length - 1].className === "active") {
+                                return false;
+                            }
+                            prevNextCont[prevNextCont.length - 2].className === "active" ? this.style.color = txtColor : String;
+                        }
+                    }
+                    function prev_el_fun() {
+                        for (var i = 0; i < prevNextCont.length; i++) {
+                            if (prevNextCont[prevNextCont.length - prevNextCont.length].className === "active") {
+                                return false;
+                            }
+                            prevNextCont[1].className === "active" ? this.style.color = txtColor : String;
+                            if (prevNextCont[i].className === "active") {
+                                next_el.style = "";
+                                prevNextCont[i].className = "";
+                                prevNextCont[i - 1].className = "active";
+                                break;
+                            }
+
+                        }
+
+                    }
+
+                },
+                elSlider: function (x, y, z, m) {
+                    //得到要进行切换值的元素和左右切换按钮
+                    var offsetTarget = document.getElementById(x) || document.getElementsByClassName(x) || document.querySelector(x);
+                    var prev = document.getElementById(y) || document.getElementsByClassName(y) || document.querySelector(y);
+                    var next = document.getElementById(z) || document.getElementsByClassName(z) || document.querySelector(z);
+                    var initOffsetX = parseInt(offsetTarget.style.left);//得到元素初始偏移量 -600
+                    var offsetTargetChild = offsetTarget.getElementsByTagName(m);
+                    // 克隆元素/插入元素
+                    var cloneEl = {
+                        firstChild: offsetTarget.childNodes[1].cloneNode(true), //true表示深复制
+                        lastChild: offsetTarget.childNodes[wrap.childNodes.length - 2].cloneNode(true),
+                        cloneInset: function () {
+                            offsetTarget.insertBefore(this.lastChild, offsetTarget.childNodes[0]);
+                            offsetTarget.append(this.firstChild);
+                            // 执行左右切换事件
+                            {
+                                eventUntil.addEvent(next, 'click', nexSlide);
+                                eventUntil.addEvent(prev, 'click', prevSlide);
+                                var offsetXsum = null; //img元素的总宽度
+                                for (var i = 0; i < offsetTargetChild.length; i++) {
+                                    offsetXsum += offsetTargetChild[i].offsetWidth; //将每个img的宽度求和赋值给offsetXsum（总宽度）
+                                }
+
+                                function nexSlide() {
+                                    var newLeft;
+                                    offsetTarget.style.left === ("-" + (offsetXsum + initOffsetX) + "px") ? (newLeft = initOffsetX) : (newLeft = parseInt(offsetTarget.style.left) + initOffsetX);
+                                    offsetTarget.style.left = newLeft + "px";
+                                }
+                                function prevSlide() {
+                                    var newLeft;
+                                    offsetTarget.style.left === ("0px" || "" || null || undefined) ? (newLeft = (initOffsetX * (offsetTargetChild.length - 3))) : (newLeft = parseInt(offsetTarget.style.left) - initOffsetX);
+                                    offsetTarget.style.left = newLeft + "px";
+                                }
+                            }
+                        }
+                    }
+                    cloneEl.cloneInset();
+                },
+                toogleWidth: function (el, eveType, sooth) {
+                    var initWidth = el[0].offsetWidth;
+                    for (var i = 0; i < el.length; i++) {
+                        eventUntil.addEvent(el[i], eveType, slideWidth);
+                        function slideWidth() {
+                            for (var i = 0; i < el.length; i++) {
+                                el[i].style = "";
+                            }
+                            this.style.width = initWidth + sooth + 'px';
+                        }
+                    }
+                }
+            }
+
+            xfky.tabCard(
+                tit.childNodes,
+                cont.childNodes,
+                'click',
+                prev1,
+                next1,
+                '#ccc',
+                document.getElementById('hua').getElementsByTagName('div'));//tab切换
+            xfky.elSlider('wrap', 'prev', 'next', 'img');//调用  只需要传这四个元素即可
+            xfky.toogleWidth(toogleWidth.getElementsByTagName('div'), 'mouseenter', 100);// 滑动门
+        });
+    </script>
+
